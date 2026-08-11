@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from CustomTitleBar import CustomToplevel
+from database import get_searchCustomer
 from database import get_customers
 
 
@@ -53,6 +54,11 @@ def open_customers(root):
     )  # one
     cancel_searchButton.pack(side="left")
 
+    def search():
+        term = search_entry.get()
+        get = get_searchCustomer(term)
+        return load_data(get)
+
     search_button = Button(
         search_frame,
         text="🔎",
@@ -61,7 +67,9 @@ def open_customers(root):
         fg="white",
         activebackground="#0C131A",
         bg="#0C131A",
+        command=lambda: search(),
     )
+
     search_button.pack(side="left")
 
     body_frame = Frame(win.content_area, bg="#06203A")
@@ -70,21 +78,35 @@ def open_customers(root):
     style = ttk.Style()
     style.theme_use("clam")
 
+    # Body style
     style.configure(
         "customer.Treeview",
         font=("Segoe UI", 13),
         foreground="#ffffff",
         background="#2c3e50",
+        fieldbackground="#2c3e50",  # important for the actual rows
         rowheight=30,
         relief="flat",
     )
-    style.map("Treeview.Heading", background=[("active", "#34495e")])
 
+    # Heading style  ← note the "customer." prefix
     style.configure(
-        "Treeview.Heading", font=("Segoe UI", 15, "bold"), foreground="#2c3e50"
+        "customer.Treeview.Heading",
+        font=("Segoe UI", 15, "bold"),
+        foreground="#2c3e50",
+        background="#ecf0f1",  # or whatever colour you want
+        relief="flat",
     )
 
-    scrollbar = Scrollbar(body_frame, orient="vertical")
+    style.map(
+        "customer.Treeview.Heading",
+        background=[("active", "#34495e")],
+        foreground=[("active", "white")],
+    )
+
+    # ---------- Scrollbar + Treeview ----------
+    scrollbar = ttk.Scrollbar(body_frame, orient="vertical")
+
     columns = (
         "CUSTOMER CODE",
         "CUSTOMER NAME",
@@ -93,6 +115,7 @@ def open_customers(root):
         "CUSTOMER STATUS",
         "CUSTOMER CONTACTS",
     )
+
     tree = ttk.Treeview(
         body_frame,
         columns=columns,
@@ -102,93 +125,60 @@ def open_customers(root):
     )
     scrollbar.configure(command=tree.yview)
 
-    tree.column("CUSTOMER CODE", width=100)
-    tree.column("CUSTOMER NAME", width=100)
-    tree.column("CUSTOMER I.D", width=100)
-    tree.column("CUSTOMER LOCATION", width=100)
-    tree.column("CUSTOMER STATUS", width=100)
-    tree.column("CUSTOMER CONTACTS", width=100)
+    # Column widths
+    for col in columns:
+        tree.column(col, width=120, anchor="w")
 
-    tree.heading(
-        "CUSTOMER CODE",
-        text="CUSTOMER CODE",
-        anchor="w",
-        command=lambda: sort_column("CUSTOMER CODE"),
-    )
-    tree.heading(
-        "CUSTOMER NAME",
-        text="CUSTOMER NAME",
-        anchor="w",
-        command=lambda: sort_column("CUSTOMER NAME"),
-    )
-    tree.heading(
-        "CUSTOMER I.D",
-        text="CUSTOMER I.D",
-        anchor="w",
-        command=lambda: sort_column("CUSTOMER I.D"),
-    )
-    tree.heading(
-        "CUSTOMER LOCATION",
-        text="CUSTOMER LOCATION",
-        anchor="w",
-        command=lambda: sort_column("CUSTOMER LOCATION"),
-    )
-    tree.heading(
-        "CUSTOMER STATUS",
-        text="CUSTOMER STATUS",
-        anchor="w",
-        command=lambda: sort_column("CUSTOMER STATUS"),
-    )
-    tree.heading(
-        "CUSTOMER CONTACTS",
-        text="CUSTOMER CONTACTS",
-        anchor="w",
-        command=lambda: sort_column("CUSTOMER CONTACTS"),
-    )
+    # Headings with sort command
+    for col in columns:
+        tree.heading(
+            col,
+            text=col,
+            anchor="w",
+            command=lambda c=col: sort_column(c),  # important: capture col correctly
+        )
 
-    sort_states = {}  # keeps track of current sort direction per column
-    # True = ascending, False = descending
+    # Pack once only
+    scrollbar.pack(side="right", fill="y")
+    tree.pack(side="left", fill="both", expand=True)
+
+    # ---------- Data + Sorting ----------
+    sort_states = {}  # col → True (asc) / False (desc)
 
     customers = get_customers()
 
     def load_data(data):
-        for row in tree.get_children():
-            tree.delete(row)
-        for phone in data:
-            tree.insert(
-                "",
-                END,
-                values=(phone[1], phone[3], phone[2], phone[4], phone[6], phone[5]),
-            )
+        tree.delete(*tree.get_children())
+
+        if data:
+            for phone in data:
+                tree.insert(
+                    "",
+                    "end",
+                    values=(phone[1], phone[3], phone[2], phone[4], phone[6], phone[5]),
+                )
 
     load_data(customers)
 
     def sort_column(col):
-        # Get all items
         items = [(tree.set(k, col), k) for k in tree.get_children("")]
 
-        # Decide direction
         ascending = sort_states.get(col, True)
 
-        # Try to sort numerically if possible, otherwise alphabetically
         try:
             items.sort(key=lambda t: float(t[0]), reverse=not ascending)
         except ValueError:
-            items.sort(key=lambda t: t[0].lower(), reverse=not ascending)
+            items.sort(key=lambda t: str(t[0]).lower(), reverse=not ascending)
 
-        # Re-order the items in the tree
-        for index, (val, k) in enumerate(items):
+        for index, (_, k) in enumerate(items):
             tree.move(k, "", index)
 
-        # Toggle direction for next click
+        # Toggle direction
         sort_states[col] = not ascending
 
-        # Update all headings (clear arrows, then set the active one)
+        # Update headings – keep original text + arrow
         for c in columns:
-            text = c.capitalize()
+            text = c
             if c == col:
                 text += " ↑" if ascending else " ↓"
             tree.heading(c, text=text)
-
-        scrollbar.pack(side="right")
-        tree.pack(fill="both")

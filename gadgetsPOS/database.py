@@ -1,5 +1,7 @@
 import sqlite3
 
+# from customers import open_customers
+
 
 def init_db():
     conn = sqlite3.connect("phones.db")
@@ -101,3 +103,21 @@ def get_notification():
     cursor.execute("SELECT * FROM phones WHERE quantity<5")
     low_stock = cursor.fetchall()
     return low_stock
+
+
+def get_searchCustomer(term):
+    conn = get_connection()
+    cursor = conn.cursor()
+    if term:
+        cursor.execute(
+            """SELECT * FROM customers WHERE 
+            LOWER(name) LIKE LOWER(?) OR 
+            LOWER(mobile) LIKE LOWER(?) OR 
+            LOWER(customer_code) LIKE LOWER(?) OR 
+            LOWER(id_number) LIKE LOWER(?)""",
+            ("%" + term + "%", "%" + term + "%", "%" + term + "%", "%" + term + "%"),
+        )
+        searched_results = cursor.fetchall()
+        return searched_results
+    else:
+        print("no match")
