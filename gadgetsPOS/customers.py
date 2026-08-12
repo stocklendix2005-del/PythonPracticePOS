@@ -11,34 +11,56 @@ def open_customers(root):
         title="CUSTOMERS",
         width=1750,
         height=780,
-        x=140,
-        y=200,
+        x=120,
+        y=220,
         bg="#0C131A",
     )
+
+    win.configure(bd=2, highlightthickness=2, highlightcolor="#2c3e50")
 
     header_frame = Frame(win.content_area, bg="#0C131A")
     header_frame.pack(fill="x", side="top")
 
     header_frame.rowconfigure(0, weight=1)
-    header_frame.rowconfigure(1, weight=1)
     header_frame.columnconfigure(0, weight=0)
     header_frame.columnconfigure(1, weight=1)
     header_frame.columnconfigure(2, weight=0)
-
-    header_lab = Label(
-        header_frame,
-        text="C u s t o m e r s",
-        font=("arial", 15, "bold"),
-        fg="white",
-        bg="#0C131A",
-    )
-    header_lab.grid(row=0, column=1, columnspan=2)
 
     search_frame = Frame(
         header_frame,
         bg="#0C131A",
     )
-    search_frame.grid(row=1, column=0, sticky="e", padx=10, pady=10)
+    search_frame.grid(row=0, column=0, sticky="e", padx=10, pady=10)
+
+    tools_frame = Frame(
+        header_frame,
+        bg="#0C131A",
+    )
+    tools_frame.grid(row=0, column=1, sticky="w", pady=10)
+
+    def tools_bt(parent, text, command):
+        return Button(
+            parent,
+            text=text,
+            bg="#2c3e50",
+            fg="white",
+            width=4,
+            font=("arial", 15),
+            bd=0,
+            command=command,
+        )
+
+    customerInfoButton = tools_bt(tools_frame, "ℹ", None)
+    customerInfoButton.pack(side="left", padx=5)
+
+    deleteCustomerBt = tools_bt(tools_frame, "    🗑️", None)
+    deleteCustomerBt.pack(side="left", padx=5)
+
+    updateCustomerBt = tools_bt(tools_frame, "    🔄️", update_customers)
+    updateCustomerBt.pack(side="left", padx=5)
+
+    addCustomerFrame = Frame(header_frame, bg="#0C131A")
+    addCustomerFrame.grid(row=0, column=2, pady=10)
 
     search_entry = Entry(search_frame, width=15, font=("arial", 13))
     search_entry.pack(side="left", padx=10)
@@ -49,7 +71,7 @@ def open_customers(root):
         bd=0,
         bg="#0C131A",
         activebackground="#0C131A",
-        command=search_entry.delete(0, END),
+        command=lambda: clear_search_and_refresh(search_entry, customers),
         fg="white",
     )  # one
     cancel_searchButton.pack(side="left")
@@ -108,6 +130,7 @@ def open_customers(root):
     scrollbar = ttk.Scrollbar(body_frame, orient="vertical")
 
     columns = (
+        "ID",
         "CUSTOMER CODE",
         "CUSTOMER NAME",
         "CUSTOMER I.D",
@@ -123,6 +146,16 @@ def open_customers(root):
         style="customer.Treeview",
         yscrollcommand=scrollbar.set,
     )
+
+    tree["displaycolumns"] = (
+        "CUSTOMER CODE",
+        "CUSTOMER NAME",
+        "CUSTOMER I.D",
+        "CUSTOMER LOCATION",
+        "CUSTOMER STATUS",
+        "CUSTOMER CONTACTS",
+    )
+
     scrollbar.configure(command=tree.yview)
 
     # Column widths
@@ -155,10 +188,25 @@ def open_customers(root):
                 tree.insert(
                     "",
                     "end",
-                    values=(phone[1], phone[3], phone[2], phone[4], phone[6], phone[5]),
+                    values=(
+                        phone[0],
+                        phone[1],
+                        phone[3],
+                        phone[2],
+                        phone[4],
+                        phone[6],
+                        phone[5],
+                    ),
                 )
 
     load_data(customers)
+
+    def clear_search_and_refresh(search_entry, data):
+        search_entry.delete(0, END)
+        load_data(data)
+
+    def update_customers():
+        pass
 
     def sort_column(col):
         items = [(tree.set(k, col), k) for k in tree.get_children("")]

@@ -121,3 +121,26 @@ def get_searchCustomer(term):
         return searched_results
     else:
         print("no match")
+
+
+def update_customers(id, name, location, mobile, status):
+    conn = get_connection()
+    cursor = conn.cursor()
+    id = id
+    name = name
+    location = location
+    mobile = mobile
+    status = status
+    cursor.execute(
+        """UPDATE customers SET 
+                            name=(?),
+                            location=(?),
+                            mobile=(?),
+                            status=(?)
+                            WHERE
+                            id = (?)
+                            """,
+        (name, location, mobile, status, id),
+    )
+    conn.commit()
+    conn.close()
