@@ -6,6 +6,7 @@ from database import get_customers
 
 
 def open_customers(root):
+    root.attributes("-alpha", 0.4)
     win = CustomToplevel(
         parent=root,
         title="CUSTOMERS",
@@ -56,7 +57,7 @@ def open_customers(root):
     deleteCustomerBt = tools_bt(tools_frame, "    🗑️", None)
     deleteCustomerBt.pack(side="left", padx=5)
 
-    updateCustomerBt = tools_bt(tools_frame, "    🔄️", update_customers)
+    updateCustomerBt = tools_bt(tools_frame, "    🔄️", None)
     updateCustomerBt.pack(side="left", padx=5)
 
     addCustomerFrame = Frame(header_frame, bg="#0C131A")

@@ -41,6 +41,20 @@ class CustomToplevel(tk.Toplevel):
             element.bind("<Button-1>", self._start_move)
             element.bind("<B1-Motion>", self._do_move)
 
+        self.focus()
+
+        def close__focus_out():
+            parent.attributes("-alpha", 1.0)
+            new_focus = self.focus_get()
+            if new_focus is None or not str(new_focus).startswith(str(self)):
+                self.destroy()
+
+        self.bind("<FocusOut>", lambda event: close__focus_out())
+
+        def close_win():
+            self.destroy()
+            parent.attributes("-alpha", 1.0)
+
         # Close Button
         self.close_button = tk.Button(
             self.title_bar,
@@ -51,7 +65,7 @@ class CustomToplevel(tk.Toplevel):
             font=("Segoe UI", 11),
             activebackground="#c42b1c",
             activeforeground="white",
-            command=self.destroy,
+            command=lambda: close_win(),
         )
         self.close_button.pack(side=tk.RIGHT, padx=8)
 
