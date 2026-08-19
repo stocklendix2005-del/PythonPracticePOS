@@ -1,15 +1,15 @@
 from tkinter import *
 from tkinter import ttk
 from CustomTitleBar import CustomToplevel
-from database import get_searchCustomer
-from database import get_customers
+from database import get_gadgets
+from database import get_searchInventory
 
 
-def open_customers(root):
+def open_inventory(root):
     root.attributes("-alpha", 0.8)
     win = CustomToplevel(
         parent=root,
-        title="CUSTOMERS",
+        title="INVENTORY",
         width=1750,
         height=780,
         x=120,
@@ -72,15 +72,12 @@ def open_customers(root):
         bd=0,
         bg="#0C131A",
         activebackground="#0C131A",
-        command=lambda: clear_search_and_refresh(search_entry, customers),
+        command=lambda: clear_search_and_refresh(
+            search_entry, inventory, inventory_tree
+        ),
         fg="white",
     )  # one
     cancel_searchButton.pack(side="left")
-
-    def search():
-        term = search_entry.get()
-        get = get_searchCustomer(term)
-        return load_data(get)
 
     search_button = Button(
         search_frame,
@@ -98,11 +95,11 @@ def open_customers(root):
     body_frame = Frame(win.content_area, bg="#06203A")
     body_frame.pack(fill=BOTH, expand=True)
 
-    style = ttk.Style()
-    style.theme_use("clam")
+    inventory_style = ttk.Style()
+    inventory_style.theme_use("clam")
 
-    # Body style
-    style.configure(
+    # Body inventory_style
+    inventory_style.configure(
         "customer.Treeview",
         font=("Segoe UI", 13),
         foreground="#ffffff",
@@ -112,8 +109,8 @@ def open_customers(root):
         relief="flat",
     )
 
-    # Heading style  ← note the "customer." prefix
-    style.configure(
+    # Heading inventory_style  ← note the "customer." prefix
+    inventory_style.configure(
         "customer.Treeview.Heading",
         font=("Segoe UI", 15, "bold"),
         foreground="#2c3e50",
@@ -121,7 +118,7 @@ def open_customers(root):
         relief="flat",
     )
 
-    style.map(
+    inventory_style.map(
         "customer.Treeview.Heading",
         background=[("active", "#34495e")],
         foreground=[("active", "white")],
@@ -132,15 +129,15 @@ def open_customers(root):
 
     columns = (
         "ID",
-        "CUSTOMER CODE",
-        "CUSTOMER NAME",
-        "CUSTOMER I.D",
-        "CUSTOMER LOCATION",
-        "CUSTOMER STATUS",
-        "CUSTOMER CONTACTS",
+        "ITEM CODE",
+        "BRAND",
+        "MODEL",
+        "PRICE",
+        "CATEGORY",
+        "SYSTEM COUNT",
     )
 
-    tree = ttk.Treeview(
+    inventory_tree = ttk.Treeview(
         body_frame,
         columns=columns,
         show="headings",
@@ -148,24 +145,24 @@ def open_customers(root):
         yscrollcommand=scrollbar.set,
     )
 
-    tree["displaycolumns"] = (
-        "CUSTOMER CODE",
-        "CUSTOMER NAME",
-        "CUSTOMER I.D",
-        "CUSTOMER LOCATION",
-        "CUSTOMER STATUS",
-        "CUSTOMER CONTACTS",
+    inventory_tree["displaycolumns"] = (
+        "ITEM CODE",
+        "BRAND",
+        "MODEL",
+        "PRICE",
+        "CATEGORY",
+        "SYSTEM COUNT",
     )
 
-    scrollbar.configure(command=tree.yview)
+    scrollbar.configure(command=inventory_tree.yview)
 
     # Column widths
     for col in columns:
-        tree.column(col, width=120, anchor="w")
+        inventory_tree.column(col, width=120, anchor="w")
 
     # Headings with sort command
     for col in columns:
-        tree.heading(
+        inventory_tree.heading(
             col,
             text=col,
             anchor="w",
@@ -174,14 +171,14 @@ def open_customers(root):
 
     # Pack once only
     scrollbar.pack(side="right", fill="y")
-    tree.pack(side="left", fill="both", expand=True)
+    inventory_tree.pack(side="left", fill="both", expand=True)
 
     # ---------- Data + Sorting ----------
     sort_states = {}  # col → True (asc) / False (desc)
 
-    customers = get_customers()
+    inventory = get_gadgets()
 
-    def load_data(data):
+    def load_data(data, tree):
         tree.delete(*tree.get_children())
 
         if data:
@@ -192,25 +189,32 @@ def open_customers(root):
                     values=(
                         phone[0],
                         phone[1],
-                        phone[3],
                         phone[2],
+                        phone[3],
                         phone[4],
-                        phone[6],
                         phone[5],
+                        phone[6],
                     ),
                 )
 
-    load_data(customers)
+    load_data(inventory, inventory_tree)
 
-    def clear_search_and_refresh(search_entry, data):
+    def search():
+        term = search_entry.get()
+        get = get_searchInventory(term)
+        return load_data(get, inventory_tree)
+
+    def clear_search_and_refresh(search_entry, data, tree):
         search_entry.delete(0, END)
-        load_data(data)
+        load_data(data, tree)
 
     def update_customers():
         pass
 
     def sort_column(col):
-        items = [(tree.set(k, col), k) for k in tree.get_children("")]
+        items = [
+            (inventory_tree.set(k, col), k) for k in inventory_tree.get_children("")
+        ]
 
         ascending = sort_states.get(col, True)
 
@@ -220,7 +224,7 @@ def open_customers(root):
             items.sort(key=lambda t: str(t[0]).lower(), reverse=not ascending)
 
         for index, (_, k) in enumerate(items):
-            tree.move(k, "", index)
+            inventory_tree.move(k, "", index)
 
         # Toggle direction
         sort_states[col] = not ascending
@@ -230,4 +234,4 @@ def open_customers(root):
             text = c
             if c == col:
                 text += " ↑" if ascending else " ↓"
-            tree.heading(c, text=text)
+            inventory_tree.heading(c, text=text)

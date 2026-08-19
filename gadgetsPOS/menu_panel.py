@@ -14,6 +14,19 @@ def sliding_menu(root):
     canvas.pack(fill=BOTH, expand=True)
 
     button_menu = []
+    for i in range(1, 6):
+        button = Button(
+            canvas,
+            text="Exit",
+            font=("arial", 14),
+            width=15,
+            fg="white",
+            padx=30,
+            bg="#152331",
+        )
+        button.pack(side="left", fill="x")
+        button_menu.append(button)
+    button_menu[1].config(bg="white")
 
     menu_frame = Frame(canvas, bg="#FFFFFF")
     canvas_window = canvas.create_window((0, 0), window=menu_frame, anchor="nw")

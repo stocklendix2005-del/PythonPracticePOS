@@ -144,3 +144,26 @@ def update_customers(id, name, location, mobile, status):
     )
     conn.commit()
     conn.close()
+
+
+def get_searchInventory(term):
+    conn = get_connection()
+    cursor = conn.cursor()
+    if term:
+        cursor.execute(
+            """SELECT * FROM phones WHERE 
+            LOWER(brand) LIKE LOWER(?) OR 
+            LOWER(model) LIKE LOWER(?) OR 
+            LOWER(category) LIKE LOWER(?) OR 
+            LOWER(item_code) LIKE LOWER(?)""",
+            (
+                "%" + term + "%",
+                "%" + term + "%",
+                "%" + term + "%",
+                "%" + term + "%",
+            ),
+        )
+        searched_results = cursor.fetchall()
+        return searched_results
+    else:
+        print("no match")

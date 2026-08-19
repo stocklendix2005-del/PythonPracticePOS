@@ -12,6 +12,7 @@ import sqlite3
 from menu_panel import sliding_menu
 from notifications import open_notifications
 from customers import open_customers
+from inventory import open_inventory
 
 window = Tk()
 window.title("Len App")
@@ -111,6 +112,7 @@ open_customer_lab = Label(
 )
 open_customer_lab.pack(pady=(0, 20))
 
+
 open_gadget = Button(
     tools_frame,
     text="   🖥️",
@@ -121,6 +123,7 @@ open_gadget = Button(
     activeforeground="white",
     font=("arial", 20),
     bd=0,
+    command=lambda: open_inventory(window),
 )
 open_gadget.pack(pady=(10, 0), padx=(5, 0))
 open_gadget_lab = Label(

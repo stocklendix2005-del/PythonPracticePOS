@@ -42,6 +42,13 @@ class CustomToplevel(tk.Toplevel):
             element.bind("<B1-Motion>", self._do_move)
 
         self.focus()
+        self.grab_set()
+
+        def enforce_parent_alpha(event):
+            parent.attributes("-alpha", 0.4)
+
+        self.bind("<FocusIn>", enforce_parent_alpha)
+        # self.bind("<Button-1>", enforce_parent_alpha)
 
         def close__focus_out():
             parent.attributes("-alpha", 1.0)
