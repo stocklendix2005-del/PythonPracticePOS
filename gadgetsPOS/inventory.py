@@ -3,6 +3,7 @@ from tkinter import ttk
 from CustomTitleBar import CustomToplevel
 from database import get_gadgets
 from database import get_searchInventory
+from info_window import open_info_window
 
 
 def open_inventory(root):
@@ -51,15 +52,6 @@ def open_inventory(root):
             command=command,
         )
 
-    customerInfoButton = tools_bt(tools_frame, "ℹ", None)
-    customerInfoButton.pack(side="left", padx=5)
-
-    deleteCustomerBt = tools_bt(tools_frame, "    🗑️", None)
-    deleteCustomerBt.pack(side="left", padx=5)
-
-    updateCustomerBt = tools_bt(tools_frame, "    🔄️", None)
-    updateCustomerBt.pack(side="left", padx=5)
-
     addCustomerFrame = Frame(header_frame, bg="#0C131A")
     addCustomerFrame.grid(row=0, column=2, pady=10)
 
@@ -89,6 +81,8 @@ def open_inventory(root):
         bg="#0C131A",
         command=lambda: search(),
     )
+
+    search_entry.bind("<Return>", lambda event: search())
 
     search_button.pack(side="left")
 
@@ -235,3 +229,27 @@ def open_inventory(root):
             if c == col:
                 text += " ↑" if ascending else " ↓"
             inventory_tree.heading(c, text=text)
+
+    def show_gadget_info():
+        selected = inventory_tree.selection()
+
+        if not selected:
+            print("Please select an item first.")
+            return
+
+        item_id = selected[0]
+        values = inventory_tree.item(item_id, "values")
+
+        print("Selected ID:", repr(item_id))
+        print("Values:", values)
+
+        open_info_window(win, values)
+
+    customerInfoButton = tools_bt(tools_frame, "ℹ", lambda: show_gadget_info())
+    customerInfoButton.pack(side="left", padx=5)
+
+    deleteCustomerBt = tools_bt(tools_frame, "    🗑️", None)
+    deleteCustomerBt.pack(side="left", padx=5)
+
+    updateCustomerBt = tools_bt(tools_frame, "    🔄️", None)
+    updateCustomerBt.pack(side="left", padx=5)

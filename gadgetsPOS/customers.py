@@ -3,6 +3,8 @@ from tkinter import ttk
 from CustomTitleBar import CustomToplevel
 from database import get_searchCustomer
 from database import get_customers
+from info_window import open_info_window
+from tkinter import messagebox
 
 
 def open_customers(root):
@@ -51,10 +53,94 @@ def open_customers(root):
             command=command,
         )
 
-    customerInfoButton = tools_bt(tools_frame, "ℹ", None)
+    def show_customer_info():
+        selected = tree.selection()
+
+        if not selected:
+            print("Please select an item first.")
+            return
+
+        item_id = selected[0]
+        values = tree.item(item_id, "values")
+
+        print("Selected ID:", repr(item_id))
+        print("Values:", values)
+
+        open_info_window(win, values)
+
+    def add_customer():
+        window = CustomToplevel(
+            parent=win, title="ADD", width=500, height=500, x=730, y=250, bg="#CECACA"
+        )
+        window.configure(bd=2, highlightthickness=2, highlightcolor="#2c3e50")
+
+        popup = Frame(window, bg="#E4E2E2", bd=2, relief="groove")
+        popup.pack(fill=BOTH)
+
+        popup.columnconfigure(0, weight=1)
+        popup.columnconfigure(1, weight=1)
+
+        popup.rowconfigure(0, weight=0)
+        popup.rowconfigure(1, weight=0)
+        popup.rowconfigure(2, weight=0)
+        popup.rowconfigure(3, weight=0)
+        popup.rowconfigure(4, weight=0)
+        popup.rowconfigure(5, weight=0)
+
+        heading = Label(
+            popup,
+            text="*Fill all fields required then\nclick done to update specs",
+            font=("arial", 11, "bold"),
+            fg="yellow",
+            bg="grey",
+        )
+        heading.grid(row=0, column=0, columnspan=2, pady=(0, 10))
+
+        def label_griding(text, row):
+            return Label(
+                popup, text=text, font=("arial", 11), fg="black", bg="#E4E2E2"
+            ).grid(row=row, column=0, sticky="w")
+
+        label_griding("*id number:", 1)
+        label_griding("*full names:", 2)
+        label_griding("*location:", 3)
+        label_griding("*mobile:", 4)
+        label_griding("*status:", 5)
+
+        entries = []
+        for i in range(1, 6):
+            entry = Entry(popup, width=20, font=("arial", 11), bg="#C4C4C4", fg="black")
+            entry.grid(row=i, column=1, ipady=5, sticky="w", pady=5)
+            entries.append(entry)
+
+        def save_changes():
+            for e in entries:
+                items = e.get().strip()
+                if not items:
+                    messagebox.showerror("Error", "*Fill all fields!")
+                    return
+            if not entries[0].get().isdigit() or entries[3].get().isdigit():
+                messagebox.showerror("Error", "'id no' and 'mobile' must be digits!")
+                return
+
+        save_frame = Frame(window, bg="#E4E2E2", bd=2, relief="groove")
+        save_button = Button(
+            save_frame,
+            text="SAVE",
+            command=save_changes,
+            font=("arial", 12, "bold"),
+            bd=0,
+            fg="green",
+            bg="grey",
+            activebackground="grey",
+        )
+        save_button.pack(pady=70)
+        save_frame.pack(fill="both", expand=True, pady=(0, 10))
+
+    customerInfoButton = tools_bt(tools_frame, "ℹ", lambda: show_customer_info())
     customerInfoButton.pack(side="left", padx=5)
 
-    deleteCustomerBt = tools_bt(tools_frame, "    🗑️", None)
+    deleteCustomerBt = tools_bt(tools_frame, "    ➕", lambda: add_customer())
     deleteCustomerBt.pack(side="left", padx=5)
 
     updateCustomerBt = tools_bt(tools_frame, "    🔄️", None)

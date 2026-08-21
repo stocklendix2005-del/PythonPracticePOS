@@ -62,6 +62,32 @@ def init_db():
             FOREIGN KEY(sale_id) REFERENCES sales(sale_id)
             )""")
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS item_specs(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id TEXT NOT NULL,
+            display TEXT DEFAULT 'Not Updated',
+            connectivity TEXT DEFAULT 'Not Updated',
+            chipset TEXT DEFAULT 'Not Updated',
+            battery TEXT DEFAULT 'Not Updated',
+            build TEXT DEFAULT 'Not Updated',
+            
+            FOREIGN KEY(item_id) REFERENCES phones(id)
+            )""")
+
+    c.execute("""
+            CREATE TABLE IF NOT EXISTS customer_description(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id TEXT NOT NULL,
+                total_sales TEXT DEFAULT 'Not Updated',
+                credit_limit TEXT DEFAULT 'Not Updated',
+                successful_sales TEXT DEFAULT 'Not Updated',
+                failed_sales TEXT DEFAULT 'Not Updated',
+                status TEXT DEFAULT 'Not Updated',
+                
+                FOREIGN KEY(customer_id) REFERENCES customers(id)
+                )""")
+
     conn.commit()
     conn.close()
 
@@ -167,3 +193,17 @@ def get_searchInventory(term):
         return searched_results
     else:
         print("no match")
+
+
+def get_item_specs(item_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    if item_id:
+        cursor.execute(
+            """
+        SELECT * FROM item_specs WHERE 
+        (item_id)=(?)""",
+            (item_id),
+        )
+        specs = cursor.fetchall()
+        return specs
